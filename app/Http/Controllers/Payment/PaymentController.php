@@ -6,10 +6,11 @@ use App\Addons\Multivendor\Http\Controllers\Seller\SellerPackageController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\CombinedOrder;
 use App\Models\User;
 use Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -32,20 +33,19 @@ class PaymentController extends Controller
         session()->put('cvv', $request->cvv);
         session()->put('expiration_month', $request->expiration_month);
         session()->put('expiration_year', $request->expiration_year);
-
+        // dd(session()->all());
         if ($request->hasFile('receipt')) {
             if ($request->payment_type == "seller_package_payment") {
                 session()->put('receiptFile', $request->file('receipt')->store('uploads/offline_payments'));
-            } else {
-                session()->put('receipt', $request->file('receipt'));
+            }else {
+                session()->put('receipt', $request->file('receipt')->store('uploads/offline_payments'));
             }
         }
         session()->put('seller_package_id', $request->seller_package_id ?? null);
 
         if ($gateway == 'paypal') {
             return (new PaypalPaymentController)->index();
-        }
-        if ($gateway == 'uddoktapay') {
+        } elseif ($gateway == 'uddoktapay') {
             return (new UddoktaPayPaymentController)->index();
         } elseif ($gateway == 'stripe') {
             return (new StripePaymentController)->index();
@@ -67,17 +67,24 @@ class PaymentController extends Controller
             return (new MercadopagoPaymentController)->index();
         } elseif ($gateway == 'iyzico') {
             return (new IyzicoPaymentController)->index();
-        } elseif (strpos($gateway, 'offline_payment') !== true) {
+        }elseif ($gateway == 'myfatoorah') {
+            return (new MyfatoorahPaymentController)->index($request);
+        }elseif ($gateway == 'phonepe') {
+            return (new PhonepePaymentController)->index();
+        }elseif ($gateway == 'payhere') {
+            return (new PayherePaymentController)->index();
+        }elseif (strpos($gateway, 'offline_payment') !== true) {
             return (new ManualPaymentController)->index();
         }
     }
 
     public function payment_success($payment_details = null)
     {
-        if (session('payment_type') == 'cart_payment') {
 
+        if (session('payment_type') == 'cart_payment'|| session('payment_type') == 'repayment') {
+            Log::info("repayment or payment type:". session('payment_type'));
             $order = CombinedOrder::where('code', session('order_code'))->first();
-
+            
             (new OrderController)->paymentDone($order, session('payment_method'), json_encode($payment_details));
         } elseif (session('payment_type') == 'wallet_payment') {
 
@@ -87,6 +94,8 @@ class PaymentController extends Controller
 
             $payment_data['transactionId'] = session('transactionId');
             $payment_data['receipt'] = session('receipt');
+
+            // Log::info("wallet payment working: whadi  ". $payment_data);
 
             (new WalletController)->wallet_payment_done($payment_data, json_encode($payment_details));
         } elseif (session('payment_type') == 'seller_package_payment') {
