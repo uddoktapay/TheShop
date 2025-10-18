@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -52,9 +52,13 @@ class RouteServiceProvider extends ServiceProvider
 
 		$this->mapOfflinePaymentRoutes();
 
-		$this->mapUddoktaPayRoutes();
+  		$this->mapAffiliateRoutes();
+
+  		$this->mapDeliveryBoyRoutes();
 
 		$this->mapWebRoutes();
+
+        $this->mapUddoktaPayRoutes();
 	}
 
 	/**
@@ -160,19 +164,32 @@ class RouteServiceProvider extends ServiceProvider
 			->group(base_path('routes/offline_payment.php'));
 	}
 
-	/**
-	 * Define the "uddoktapay" routes for the application.
-	 *
-	 * These routes all receive session state, CSRF protection, etc.
-	 *
-	 * @return void
-	 */
-	protected function mapUddoktaPayRoutes()
-	{
-		Route::middleware('web')
-			->namespace($this->namespace)
-			->group(base_path('routes/uddoktapay.php'));
-	}
+	 /**
+     * Define the "Affiliate" routes for the application.
+     *
+     * These routes all receive session state, CSRF protection, etc.
+     *
+     * @return void
+     */
+    protected function mapAffiliateRoutes()
+    {
+        Route::middleware('web')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/affiliate.php'));
+    }
+	 /**
+     * Define the "delivery boy" routes for the application.
+     *
+     * These routes all receive session state, CSRF protection, etc.
+     *
+     * @return void
+     */
+    protected function mapDeliveryBoyRoutes()
+    {
+        Route::middleware('web')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/delivery_boy.php'));
+    }
 
 	/**
 	 * Define the "api" routes for the application.
@@ -186,5 +203,19 @@ class RouteServiceProvider extends ServiceProvider
 		Route::prefix('api')
 			->middleware('api')
 			->group(base_path('routes/api.php'));
+	}
+
+	/**
+	 * Define the "uddoktapay" routes for the application.
+	 *
+	 * These routes all receive session state, CSRF protection, etc.
+	 *
+	 * @return void
+	 */
+	protected function mapUddoktaPayRoutes()
+	{
+		Route::middleware('web')
+			->namespace($this->namespace)
+			->group(base_path('routes/uddoktapay.php'));
 	}
 }
