@@ -8,12 +8,12 @@ use App\Models\Blog;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\Currency;
-use Illuminate\Http\Request;
 use App\Models\Language;
 use App\Models\ManualPaymentMethod;
 use App\Models\Page;
 use App\Models\Product;
 use Cache;
+use Illuminate\Http\Request;
 use Route;
 
 class HomeController extends Controller
@@ -61,8 +61,9 @@ class HomeController extends Controller
         }
 
         $settings = [
-            'appName' => config('app.name'),
+            'appName' => get_setting('site_name'),
             'appMetaTitle' => get_setting('meta_title'),
+            'appMetaDescription' => get_setting('meta_description'),
             'appLogo' => get_setting('header_logo') ? api_asset(get_setting('header_logo')) : static_asset('assets/img/logo.svg'),
             'appUrl' => getBaseURL(),
             'demoMode' => env('DEMO_MODE') == "On" ? true : false,
@@ -71,9 +72,14 @@ class HomeController extends Controller
             'allLanguages' => Language::where('status', 1)->get(['name', 'code', 'flag', 'rtl']),
             // 'allCurrencies' => Currency::all(),
             'availableCountries' => Country::where('status', 1)->pluck('code')->toArray(),
+            'primaryColor'=>get_setting('base_color', '#e62d04'),
             'shop_registration_message' => [
                 'shop_registration_message_title' => str_replace('&amp;', '&', str_replace('&nbsp;', ' ', strip_tags(get_setting('shop_registration_message_title')))),
                 'shop_registration_message_content' => str_replace('&amp;', '&', str_replace('&nbsp;', ' ', strip_tags(get_setting('shop_registration_message_content')))),
+            ],
+            'cookie_message' => [
+                'cookie_title' => str_replace('&amp;', '&', str_replace('&nbsp;', ' ', strip_tags(get_setting('cookie_title')))),
+                'cookie_description' => str_replace('&amp;', '&', str_replace('&nbsp;', ' ', strip_tags(get_setting('cookie_description')))),
             ],
             'paymentMethods' => [
                 [
@@ -85,8 +91,8 @@ class HomeController extends Controller
                 [
                     'status' => get_setting('uddoktapay_payment'),
                     'code' => 'uddoktapay',
-                    'name' => env("UDDOKTAPAY_DISPLAY_NAME", 'BD Payment Gateway'),
-                    'img' => static_asset("assets/img/cards/bdpayment.png")
+                    'name' => config('uddoktapay.display_name'),
+                    'img' => static_asset("assets/img/cards/uddoktapay.png")
                 ],
                 [
                     'status' => get_setting('stripe_payment'),
@@ -149,6 +155,24 @@ class HomeController extends Controller
                     'img' => static_asset("assets/img/cards/iyzico.png")
                 ],
                 [
+                    'status' => get_setting('myfatoorah_payment'),
+                    'code' => 'myfatoorah',
+                    'name' => translate('myfatoorah'),
+                    'img' => static_asset("assets/img/cards/myfatoorah.png")
+                ],
+                [
+                    'status' => get_setting('phonepe_payment'),
+                    'code' => 'phonepe',
+                    'name' => translate('phonepe'),
+                    'img' => static_asset("assets/img/cards/phonepe.png")
+                ],
+                [
+                    'status' => get_setting('payhere_payment'),
+                    'code' => 'payhere',
+                    'name' => translate('payhere'),
+                    'img' => static_asset("assets/img/cards/payhere.png")
+                ],
+                [
                     'status' => get_setting('cash_payment'),
                     'code' => 'cash_on_delivery',
                     'name' => translate('Cash on Delivery'),
@@ -166,6 +190,20 @@ class HomeController extends Controller
                 'club_point_convert_rate' => get_setting('club_point_convert_rate'),
                 'conversation_system' => get_setting('conversation_system'),
                 'sticky_header' => get_setting('sticky_header'),
+                'affiliate_system' => get_setting('affiliate_system'),
+                'delivery_boy' => get_setting('delivery_boy'),
+                'support_chat' => get_setting('support_chat')==1 ? true : false,
+                'pickup_point' => get_setting('pickup_point')==1 ? true : false,
+                'guest_checkout_activation' => get_setting('guest_checkout_activation')==1 ? true : false,
+                'track_order_guest_user' => get_setting('track_order_guest_user')==1 ? true : false,
+                'google_recaptcha' => get_setting('google_recaptcha')==1 ? true: false,
+                'recaptcha_track_order' => get_setting('recaptcha_track_order')==1 ? true : false,
+                'recaptcha_customer_login' => get_setting('recaptcha_customer_login')==1 ? true : false,
+                'recaptcha_customer_register' => get_setting('recaptcha_customer_register')==1 ? true : false,
+                'recaptcha_shop_register' => get_setting('recaptcha_shop_register')==1 ? true : false,
+                'recaptcha_affiliate_register' => get_setting('recaptcha_affiliate_register')==1 ? true : false,
+                'recaptcha_delivery_boy_login' => get_setting('recaptcha_delivery_boy_login')==1 ? true : false,
+                'express_delivery_option' => get_setting('express_delivery_option')==1 ? true : false,
                 'chat' => [
                     'customer_chat_logo' => api_asset(get_setting('customer_chat_logo')),
                     'customer_chat_name' => get_setting('customer_chat_name'),
@@ -189,6 +227,10 @@ class HomeController extends Controller
                 "login_page" => [
                     "img" => api_asset(get_setting('login_page_banner')),
                     "link" => get_setting('login_page_banner_link')
+                ],
+                "delivery_boy_login_page" => [
+                    "img" => api_asset(get_setting('delivery_boy_login_page_banner')),
+                    "link" => get_setting('delivery_boy_login_page_banner_link')
                 ],
                 "registration_page" => [
                     "img" => api_asset(get_setting('registration_page_banner')),
@@ -241,6 +283,8 @@ class HomeController extends Controller
         if (get_setting('offline_payment') == 1) {
             $settings['offlinePaymentMethods'] = json_decode(ManualPaymentResource::collection(ManualPaymentMethod::all())->toJson());
         }
+
+        // return $settings;
 
         return view('frontend.app', compact('settings', 'meta'));
     }
