@@ -16,7 +16,7 @@ use App\Http\Controllers\Payment\PhonepePaymentController;
 use App\Http\Controllers\Payment\RazorpayPaymentController;
 use App\Http\Controllers\Payment\SSLCommerzPaymentController;
 use App\Http\Controllers\Payment\StripePaymentController;
-use App\Http\Controllers\Payment\UddoktaPayPaymentController
+use App\Http\Controllers\Payment\UddoktaPayPaymentController;
 use App\Http\Controllers\SSLCommerz;
 
 /*
