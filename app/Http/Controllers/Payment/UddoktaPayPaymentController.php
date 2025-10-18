@@ -124,15 +124,10 @@ class UddoktaPayPaymentController extends Controller
         }
     }
 
-    public function fail(Request $request)
-    {
-        flash(translate('Payment failed. Please try again.'))->error();
-        return (new PaymentController)->payment_failed();
-    }
-
     public function cancel(Request $request)
     {
         flash(translate('Payment cancelled.'))->warning();
         return (new PaymentController)->payment_failed();
     }
 }
+
