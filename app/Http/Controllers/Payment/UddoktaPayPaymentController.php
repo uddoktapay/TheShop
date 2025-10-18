@@ -52,6 +52,7 @@ class UddoktaPayPaymentController extends Controller
                 'email' => $user->email ?? $order->user->email ?? 'guest@example.com',
                 'amount' => $order->grand_total,
                 'metadata' => $metadata,
+                'return_type' => 'GET',
                 'redirect_url' => route('uddoktapay.success'),
                 'cancel_url' => route('uddoktapay.cancel'),
             ];
@@ -69,6 +70,7 @@ class UddoktaPayPaymentController extends Controller
                 'email' => $user->email ?? 'user@example.com',
                 'amount' => session('amount'),
                 'metadata' => $metadata,
+                'return_type' => 'GET',
                 'redirect_url' => route('uddoktapay.success'),
                 'cancel_url' => route('uddoktapay.cancel'),
             ];
@@ -87,6 +89,7 @@ class UddoktaPayPaymentController extends Controller
                 'email' => $user->email ?? 'seller@example.com',
                 'amount' => session('amount'),
                 'metadata' => $metadata,
+                'return_type' => 'GET',
                 'redirect_url' => route('uddoktapay.success'),
                 'cancel_url' => route('uddoktapay.cancel'),
             ];
@@ -112,8 +115,7 @@ class UddoktaPayPaymentController extends Controller
             $verification = $uddoktaPay->verifyPayment($invoiceId);
 
             if (isset($verification['status']) && $verification['status'] === 'COMPLETED') {
-                $payment = json_encode($verification);
-                return (new PaymentController)->payment_success($payment);
+                return (new PaymentController)->payment_success($verification);
             }
 
             throw new \Exception('Payment not completed');
@@ -130,4 +132,3 @@ class UddoktaPayPaymentController extends Controller
         return (new PaymentController)->payment_failed();
     }
 }
-
